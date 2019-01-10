@@ -1,0 +1,92 @@
+import pandas as pd
+
+class main_program():
+
+#open file then show first window
+    def __init__(self):
+        self.file = pd.read_csv('C:/Users/Lenovo M7/Desktop/cal_grade/data_work2.csv')
+        self.file_dict = self.file.to_dict()
+        self.selectmode()
+
+#first window
+    def selectmode(self):
+        print('mode:\n 1.insert\n 2.edit\n 3.calculate grade\n 4.exit')
+        mode = int(input('selected:'))
+        if mode == 1:
+            self.insert()
+        elif mode == 2:
+            self.edit()
+        elif mode == 3:
+            self.calculate()
+        elif mode == 4:
+            exit()
+
+    def insert(self):
+        print("please insert in form >> year,semester,subject,credits,grade")
+        data = input('').split(',')
+        self.data = {'year':int(data[0]),'semester':int(data[1]),'subject':data[2],'credits':int(data[3]),'grade':data[4]}
+        self.file = self.file.append(self.data,ignore_index=True)
+        print(self.file)
+        self.save()
+
+    def edit(self):
+        print(self.file)
+        rows_edit = int(input("index that you want to edit:"))
+        print("please edit in form >> year,semester,subject,credits,grade")
+        data = input('').split(',')
+        data[0] = int(data[0])
+        data[1] = int(data[1])
+        data[3] = int(data[3])
+        self.file.loc[rows_edit] = data
+        self.save()
+
+    def save(self):
+        print("save? Y/N")
+        save_file = input('')
+        if save_file == 'Y':
+            self.file.to_csv('data_work2.csv',encoding='utf-8', index=False, sep=',')
+        else:
+            self.file = pd.read_csv('C:/Users/Lenovo M7/Desktop/cal_grade/data_work2.csv')
+        self.selectmode()
+
+    def calculate(self):
+        self.find_year()
+        self.find_semester()
+        self.crop_list()
+        self.find_gpa()
+
+    def find_year(self):
+        print('year:')
+        for i in set(self.file['year']):
+            print(i)
+        self.year = int(input('selected:'))
+
+    def find_semester(self):
+        self.semester = set()
+        for i in self.file_dict['year']:
+            if self.file_dict['year'][i] == self.year:
+                self.semester.add(self.file_dict['semester'][i])
+        print('semester:')
+        for i in self.semester:
+            print(i)
+        self.semester = int(input('selected:'))
+
+    def crop_list(self):
+        self.calculate_list = self.file[['year', 'semester', 'credits' , 'grade']][ self.file.year == self.year]
+        self.calculate_list = self.calculate_list[self.calculate_list['semester']==self.semester]
+        self.creditsxgrade = 0
+
+    def find_gpa(self):
+        for i in self.calculate_list.index:
+            grade = self.calculate_list['grade'][i]
+            self.creditsxgrade += self.invert_grade(grade)*self.calculate_list['credits'][i]
+        self.gpa = str(round((self.creditsxgrade/self.calculate_list['credits'].sum())-0.005,2))
+        print('Your gpa is : %s'%(self.gpa))
+        self.selectmode()
+
+    def invert_grade(self,grade):
+        self.score = {'A':4,'B+':3.5,'B':3,'C+':2.5,'C':2,'D+':1.5,'D':1}
+        return self.score[grade]
+
+
+a = main_program()
